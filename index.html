@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Her World OS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #2b2b2b;
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Press Start 2P', cursive; 
+        }
+        
+        .monitor-screen {
+            width: 95vw;
+            max-width: 1100px;
+            height: 85vh;
+            background-image: url('garden-bg.jpg'); 
+            background-size: cover;
+            background-position: bottom;
+            border: 8px solid #5d405c; 
+            border-radius: 10px;
+            position: relative;
+            box-shadow: 0px 0px 20px rgba(0,0,0,0.8);
+            overflow: hidden; 
+            display: flex;
+            flex-direction: column;
+        }
+
+        .window-bar {
+            background-color: #eab8d1;
+            border-bottom: 4px solid #5d405c;
+            padding: 8px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            color: #5d405c;
+            position: relative; /* Added so the sneaky button tracks the window bounds */
+        }
+        
+        /* Added padding so the _ and square don't shift when X runs away */
+        .window-controls { display: flex; gap: 5px; padding-right: 35px; } 
+        .control-box { border: 2px solid #5d405c; background: #fff; padding: 2px 5px; cursor: pointer; }
+
+        /* --- NEW: The Sneaky Button --- */
+        #sneaky-btn {
+            position: absolute;
+            right: 15px; 
+            transition: all 0.2s ease-in-out; 
+            z-index: 50;
+        }
+
+        .welcome-text {
+            text-align: center;
+            margin-top: 30px;
+            color: #ff9a9e;
+            font-size: 28px;
+            text-shadow: 3px 3px 0px #5d405c, -2px -2px 0px #fff; 
+            z-index: 5;
+        }
+
+        .character-wrapper {
+            position: absolute;
+            bottom: 80px; 
+            left: 50%; 
+            transform: translateX(-50%);
+            height: 350px; 
+            width: 200px;
+            z-index: 10;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            cursor: pointer;
+        }
+
+        .character {
+            height: 100%;
+            position: relative;
+            z-index: 2; 
+        }
+
+        .petal-burst {
+            position: absolute;
+            bottom: 50%;
+            left: 50%;
+            font-size: 25px;
+            opacity: 0; 
+            pointer-events: none; 
+            z-index: 1; 
+        }
+
+        .character-wrapper:hover .petal-burst {
+            animation: burst 0.8s ease-out forwards;
+        }
+
+        @keyframes burst {
+            0% {
+                opacity: 1;
+                transform: translate(-50%, 50%) scale(0.5) rotate(0deg);
+            }
+            100% {
+                opacity: 0; 
+                transform: translate(var(--x), var(--y)) scale(1.2) rotate(var(--r));
+            }
+        }
+
+        .petal-burst.p1 { --x: -80px; --y: -120px; --r: -45deg; } 
+        .petal-burst.p2 { --x: 0px;   --y: -150px; --r: 0deg; }   
+        .petal-burst.p3 { --x: 80px;  --y: -120px; --r: 45deg; }  
+        .petal-burst.p4 { --x: -100px; --y: -20px; --r: -90deg; } 
+        .petal-burst.p5 { --x: 100px;  --y: -20px; --r: 90deg; }  
+        .petal-burst.p6 { --x: 0px;    --y: 50px;  --r: 180deg; } 
+
+        .polaroid {
+            position: absolute;
+            background: white;
+            padding: 10px 10px 25px 10px;
+            border: 3px solid #5d405c;
+            box-shadow: 5px 5px 0px rgba(0,0,0,0.3);
+            z-index: 5;
+            transition: transform 0.3s, z-index 0.3s;
+            cursor: pointer; 
+        }
+
+        .polaroid:hover {
+            transform: scale(1.1) rotate(0deg) !important;
+            z-index: 20;
+        }
+
+        .polaroid::before, .polaroid::after {
+            content: '✦'; 
+            position: absolute;
+            color: #f6d365; 
+            text-shadow: 2px 2px 0px #5d405c; 
+            font-size: 35px;
+            opacity: 0;
+            pointer-events: none; 
+            z-index: 30;
+        }
+
+        .polaroid::before { top: -20px; left: -20px; }
+        .polaroid::after { bottom: 5px; right: -20px; }
+
+        .polaroid:hover::before { animation: twinkle 0.5s infinite alternate; }
+        .polaroid:hover::after { animation: twinkle 0.5s infinite alternate-reverse; }
+
+        @keyframes twinkle {
+            0% { transform: scale(0.5) rotate(-15deg); opacity: 0; }
+            50% { opacity: 1; }
+            100% { transform: scale(1.2) rotate(15deg); opacity: 1; }
+        }
+
+        .polaroid img { width: 150px; height: 150px; object-fit: cover; border: 2px solid #ddd; }
+        .polaroid-text { text-align: center; font-size: 10px; margin-top: 10px; color: #333; }
+
+        .p1 { top: 20%; left: 8%; transform: rotate(-10deg); }
+        .p2 { top: 50%; left: 15%; transform: rotate(5deg); }
+        .p3 { top: 19%; right: 10%; transform: rotate(8deg); } 
+        .p4 { top: 50%; right: 15%; transform: rotate(-5deg); }
+
+        .flower {
+            position: absolute;
+            top: -10%; 
+            z-index: 2; 
+            font-size: 20px;
+            user-select: none;
+            animation: fall linear infinite;
+        }
+
+        @keyframes fall {
+            0% { transform: translateY(-10vh) translateX(0) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(90vh) translateX(30px) rotate(360deg); opacity: 0; }
+        }
+
+        .f1 { left: 10%; animation-duration: 6s; animation-delay: 0s; }
+        .f2 { left: 30%; animation-duration: 8s; animation-delay: 2s; }
+        .f3 { left: 50%; animation-duration: 7s; animation-delay: 4s; font-size: 15px; }
+        .f4 { left: 70%; animation-duration: 9s; animation-delay: 1s; }
+        .f5 { left: 85%; animation-duration: 6.5s; animation-delay: 3s; font-size: 25px; }
+        .f6 { left: 20%; animation-duration: 7.5s; animation-delay: 5s; }
+        .f7 { left: 60%; animation-duration: 8.5s; animation-delay: 2.5s; }
+
+        .bottom-menu {
+            position: absolute;
+            bottom: 20px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            z-index: 15;
+        }
+
+        .menu-btn {
+            background-color: #fce4ec;
+            border: 4px solid #5d405c;
+            padding: 15px 20px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 12px;
+            color: #5d405c;
+            cursor: pointer;
+            box-shadow: 4px 4px 0px #5d405c;
+            transition: all 0.1s;
+        }
+
+        .menu-btn:hover { background-color: #f8bbd0; }
+        .menu-btn:active { transform: translate(4px, 4px); box-shadow: 0px 0px 0px #5d405c; }
+
+        .message-box {
+            display: none; 
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 500px;
+            max-height: 60vh; 
+            overflow-y: auto; 
+            background-color: #fff;
+            border: 6px solid #5d405c;
+            box-shadow: 10px 10px 0px rgba(0,0,0,0.5);
+            z-index: 30; 
+            padding: 20px;
+            text-align: center;
+        }
+
+        .message-box::-webkit-scrollbar { width: 15px; }
+        .message-box::-webkit-scrollbar-track { background: #fce4ec; border-left: 3px solid #5d405c; }
+        .message-box::-webkit-scrollbar-thumb { background: #ff9a9e; border: 3px solid #5d405c; cursor: pointer; }
+        .message-box::-webkit-scrollbar-thumb:hover { background: #eab8d1; }
+
+        .message-box h2 { color: #ff9a9e; text-shadow: 2px 2px 0px #5d405c; font-size: 20px;}
+        .message-box p { font-family: 'Courier New', Courier, monospace; font-size: 16px; font-weight: bold; line-height: 1.5;}
+        
+        .close-btn {
+            background-color: #ff9a9e;
+            border: 3px solid #5d405c;
+            padding: 10px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 10px;
+            margin-top: 15px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <audio id="bg-music" src="song.mp3" loop></audio>
+
+    <div class="monitor-screen">
+        <div class="window-bar">
+            <span>📁 Anfal_World_OS.exe</span>
+            <div class="window-controls">
+                <div class="control-box">_</div>
+                <div class="control-box">🗖</div>
+                <div id="sneaky-btn" class="control-box">X</div>
+            </div>
+        </div>
+
+        <div class="welcome-text">WELCOME TO ANFAL'S WORLD!</div>
+        
+        <div class="flower f1">🌸</div>
+        <div class="flower f2">🌼</div>
+        <div class="flower f3">🌸</div>
+        <div class="flower f4">🌺</div>
+        <div class="flower f5">🌼</div>
+        <div class="flower f6">🌸</div>
+        <div class="flower f7">🌺</div>
+
+        <div class="polaroid p1">
+            <img id="pic1" src="chibi-flower.png" onclick="togglePhoto('pic1', 'chibi-flower.png', 'real-flower.jpg')" alt="Memory 1">
+            <div class="polaroid-text">THE QUEEN HERSELF</div>
+        </div>
+        
+        <div class="polaroid p2">
+            <img id="pic2" src="chibi-2.png" onclick="togglePhoto('pic2', 'chibi-2.png', 'real-2.jpg')" alt="Memory 2">
+            <div class="polaroid-text">OFC SHE'S MY FAV</div>
+        </div>
+
+        <div class="polaroid p3">
+            <img id="pic3" src="chibi-3.png" onclick="togglePhoto('pic3', 'chibi-3.png', 'real-3.jpg')" alt="Memory 3">
+            <div class="polaroid-text">YES SHE'S COOL!</div>
+        </div>
+
+        <div class="polaroid p4">
+            <img id="pic4" src="chibi-4.png" onclick="togglePhoto('pic4', 'chibi-4.png', 'real-4.jpg')" alt="Memory 4">
+            <div class="polaroid-text">CUTE MOMENT</div>
+        </div>
+        
+        <div class="character-wrapper">
+            <img src="her-character.png" class="character" alt="Her Chibi Character">
+            <div class="petal-burst p1">🌸</div>
+            <div class="petal-burst p2">🌺</div>
+            <div class="petal-burst p3">🌼</div>
+            <div class="petal-burst p4">🌸</div>
+            <div class="petal-burst p5">🌺</div>
+            <div class="petal-burst p6">🌼</div>
+        </div>
+
+        <div id="love-letter" class="message-box">
+            <h2>SYSTEM ALERT: I ADORE YOU</h2>
+            <p>I built this little digital world because my real world revolves around you, Anfal.<br><br>
+            1. Your smile is my absolute favorite view.<br>
+            2. You make every ordinary day feel like a beautiful adventure.<br>
+            3. I am so incredibly lucky to call you the best thought.<br><br>
+            Loading infinite love... 100% complete.</p>
+            <button class="close-btn" onclick="closeMessage()">CLOSE WINDOW</button>
+        </div>
+
+        <div id="adventure-log" class="message-box">
+            <h2>QUEST LOG: OUR STORY</h2>
+            <div style="text-align: left; font-size: 12px; line-height: 1.8; margin-top: 15px;">
+                <p><b>> [ Level 1 ]:</b> THE DAY I FIRST MET YOU:<br>
+                I didn’t know it at the time, but that day quietly changed the direction of my entire life. It didn’t feel like fireworks. It didn’t feel like destiny announcing itself. It felt… easy. Like I had known you before. Like the universe had simply said, “There. That’s the one.”</p>
+                <p><b>> [ Level 2 ]:</b> A THOUSAND LITTLE FOREVERS:<br>
+                There’s something strange about spending moments with you. Time doesn’t behave normally. An hour feels like five minutes. Five minutes somehow feel like something I want to replay forever. With you, ordinary moments turn golden. A simple walk becomes an adventure. A random conversation becomes my favorite memory. Even doing nothing feels like everything. When I’m with you, I’m not thinking about the past. I’m not worrying about the future. I’m just there...fully, peacefully, completely. And maybe that’s what makes it so special. It’s not just about spending time with you. It’s about how alive I feel while we’re in it. If love is measured in moments, then every second with you is a treasure I’d choose again and again...</p>
+                <p><b>> [ Level 3 ]:</b> THE DAY I REALIZED I WAS FALLING FOR YOU:<br>
+                There wasn’t a dramatic thunderclap. It was quieter than that. It was in the way I wanted to tell you everything first. In the way your happiness mattered to me more than my own. In the way I started imagining future plans..and you were always there. I caught myself smiling at my phone. Replaying your laugh in my head. Missing you even when you had just left. That’s when it hit me. I wasn’t just interested. I wasn’t just happy. I was falling. And for once in my life, I wasn’t afraid of the fall.</p>
+                <p><b>> [ Future ]:</b> Countless more adventures loading...</p>
+            </div>
+            <button class="close-btn" onclick="closeLog()">CLOSE LOG</button>
+        </div>
+
+        <div class="bottom-menu">
+            <button id="music-btn" class="menu-btn" onclick="toggleMusic()">PLAY SOUNDTRACK</button>
+            <button class="menu-btn" onclick="openLog()">ADVENTURE LOG</button>
+            <button class="menu-btn" onclick="openMessage()">REASONS I ADORE YOU</button>
+        </div>
+    </div>
+
+    <script>
+        // Photo Reveal Logic
+        function togglePhoto(picId, chibiName, realName) {
+            let pic = document.getElementById(picId);
+            if (pic.src.includes(chibiName)) {
+                pic.src = realName; 
+            } else {
+                pic.src = chibiName; 
+            }
+        }
+
+        // Music Player Logic
+        let music = document.getElementById("bg-music");
+        let musicBtn = document.getElementById("music-btn");
+        function toggleMusic() {
+            if (music.paused) {
+                music.play();
+                musicBtn.innerText = "PAUSE SOUNDTRACK"; 
+            } else {
+                music.pause();
+                musicBtn.innerText = "PLAY SOUNDTRACK"; 
+            }
+        }
+
+        // Message Box Logic
+        let loveLetter = document.getElementById("love-letter");
+        function openMessage() { loveLetter.style.display = "block"; }
+        function closeMessage() { loveLetter.style.display = "none"; }
+
+        // Adventure Log Logic
+        let advLog = document.getElementById("adventure-log");
+        function openLog() { advLog.style.display = "block"; }
+        function closeLog() { advLog.style.display = "none"; }
+
+        // --- NEW: The Sneaky Escape Logic ---
+        let sneakyBtn = document.getElementById("sneaky-btn");
+        let dodgeCount = 0; 
+
+        sneakyBtn.addEventListener("mouseenter", function() {
+            if (dodgeCount < 4) { 
+                // Checks if it's on the right side
+                if (sneakyBtn.style.right === "15px" || sneakyBtn.style.right === "") {
+                    sneakyBtn.style.right = "auto";
+                    sneakyBtn.style.left = "15px"; 
+                } 
+                // Otherwise, send it back to the right
+                else {
+                    sneakyBtn.style.left = "auto";
+                    sneakyBtn.style.right = "15px"; 
+                }
+                dodgeCount++; 
+            }
+        });
+
+        sneakyBtn.addEventListener("click", function() {
+            if (dodgeCount >= 4) {
+                alert("YOU'RE NOT GOING ANYWHERE! ❤️");
+            }
+        });
+    </script>
+</body>
+</html>
